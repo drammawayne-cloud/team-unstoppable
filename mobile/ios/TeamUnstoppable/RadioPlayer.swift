@@ -110,7 +110,8 @@ final class RadioPlayer: ObservableObject {
     }
     private func begin(url: URL) {
         generation = UUID()
-        retryTask?.cancel(); timeoutTask?.cancel()
+        retryTask?.cancel(); retryTask = nil
+        timeoutTask?.cancel(); timeoutTask = nil
         retries = 0; elapsed = 0; duration = 0
         failureMessage = nil
         wantsPlayback = true
@@ -146,8 +147,12 @@ final class RadioPlayer: ObservableObject {
         player.replaceCurrentItem(with: item)
     }
     private func resume() {
-        guard player.currentItem?.status != .failed else {
-            fail("This mix could not load. Open the mix and try it again."); return
+        if player.currentItem?.status == .failed {
+            guard let asset = player.currentItem?.asset as? AVURLAsset else {
+                fail("This mix could not load. Please choose another mix."); return
+            }
+            begin(url: asset.url)
+            return
         }
         failureMessage = nil
         do { try activateAudio(); wantsPlayback = true; state = .connecting; player.play(); armTimeout(); startMetadataUpdates() }
@@ -257,9 +262,10 @@ final class RadioPlayer: ObservableObject {
         guard let url = SafeLink.https(config.nowPlayingUrl) else { return }
         do {
             let (data, response) = try await metadataSession.data(from: url)
-            guard !Task.isCancelled, let http = response as? HTTPURLResponse,
+            guard !Task.isCancelled else { return }
+            guard let http = response as? HTTPURLResponse,
                   (200...299).contains(http.statusCode), data.count < 1_000_000,
-                  SafeLink.https(response.url?.absoluteString) != nil else { return }
+                  SafeLink.https(response.url?.absoluteString) != nil else { throw ContentError.invalidContent }
             let info = try RadioMetadata.decode(data)
             stationMessage = info.is_online == true ? "Station reports online" : (info.is_online == false ? "Station reports offline" : "Station status unknown")
             guard isLiveStream else { return }
