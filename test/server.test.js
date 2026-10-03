@@ -1,0 +1,20 @@
+import {test,after} from 'node:test';import assert from 'node:assert/strict';import {mkdtemp,rm} from 'node:fs/promises';import os from 'node:os';import path from 'node:path';
+const dir=await mkdtemp(path.join(os.tmpdir(),'tu-test-'));process.env.DATA_DIR=dir;process.env.PORT='0';process.env.ADMIN_PASSWORD='test-password-only-long';const {server}=await import('../server.js');if(!server.listening)await new Promise(r=>server.once('listening',r));const base='http://127.0.0.1:'+server.address().port;process.env.PUBLIC_ORIGIN=base;
+const post=(route,data,cookie='',origin=base)=>fetch(base+route,{method:'POST',headers:{'Content-Type':'application/json',Origin:origin,Cookie:cookie},body:JSON.stringify(data)});
+after(async()=>{await new Promise(r=>server.close(r));await rm(dir,{recursive:true,force:true});});
+test('private bookings, sessions, moderation and publication boundaries',async()=>{
+ assert.equal((await fetch(base+'/api/admin/records')).status,401);
+ assert.equal((await post('/api/booking',{},'','https://evil.example')).status,403);
+ const b=await post('/api/booking',{name:'Test',email:'test@example.com',type:'Festival',date:'2027-01-01',message:'Private enquiry'});assert.equal(b.status,201);
+ assert.deepEqual(await (await fetch(base+'/api/content')).json(),[]);
+ assert.equal((await post('/api/admin/login',{password:'wrong'})).status,401);
+ const login=await post('/api/admin/login',{password:process.env.ADMIN_PASSWORD});assert.equal(login.status,200);const cookie=login.headers.get('set-cookie').split(';')[0];assert.match(login.headers.get('set-cookie'),/HttpOnly/);
+ assert.equal((await post('/api/chat',{name:'Visitor',message:'Hello <script>test</script>'})).status,201);assert.deepEqual(await (await fetch(base+'/api/chat')).json(),[]);
+ let records=await (await fetch(base+'/api/admin/records',{headers:{Cookie:cookie}})).json();const booking=records.find(r=>r.kind==='booking'),chat=records.find(r=>r.kind==='chat');
+ assert.equal((await post('/api/admin/record',{id:booking.id,published:true},cookie)).status,400);
+ assert.equal((await post('/api/admin/record',{id:chat.id,published:true},cookie)).status,200);assert.equal((await (await fetch(base+'/api/chat')).json()).length,1);
+ assert.equal((await post('/api/admin/record',{kind:'team',title:'Approved profile',description:'Official biography',published:false},cookie)).status,201);assert.deepEqual(await (await fetch(base+'/api/content')).json(),[]);
+ records=await (await fetch(base+'/api/admin/records',{headers:{Cookie:cookie}})).json();const draft=records.find(r=>r.kind==='team');await post('/api/admin/record',{id:draft.id,published:true},cookie);assert.equal((await (await fetch(base+'/api/content')).json())[0].kind,'team');
+ assert.equal((await post('/api/admin/logout',{},cookie)).status,200);assert.equal((await fetch(base+'/api/admin/records',{headers:{Cookie:cookie}})).status,401);
+});
+test('public assets, headers and missing routes',async()=>{const r=await fetch(base+'/');assert.equal(r.status,200);assert.match(r.headers.get('content-security-policy'),/frame-ancestors 'none'/);assert.match(await r.text(),/TEAM UNSTOPPABLE/);assert.equal((await fetch(base+'/data/team.sqlite')).status,404);assert.equal((await fetch(base+'/missing')).status,404);});
