@@ -15,7 +15,7 @@ export default {
   const url=new URL(request.url),p=url.pathname,db=env.DB;
   if(!p.startsWith('/api/')){
    if(!['GET','HEAD'].includes(request.method))return json(405,{error:'Method not allowed'});
-   if(p==='/admin')url.pathname='/admin.html';
+   // Cloudflare serves extensionless HTML; preserve /admin to avoid canonical redirect loops.
    const response=await env.ASSETS.fetch(new Request(url,request));const h=new Headers(response.headers);for(const [k,v]of Object.entries(security))h.set(k,v);return new Response(response.body,{status:response.status,headers:h});
   }
   if(!db)return json(503,{error:'The service is being prepared. Please try again later.'});

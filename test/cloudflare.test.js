@@ -20,3 +20,5 @@ test('Cloudflare D1 preserves booking privacy, authentication, moderation and lo
  assert.equal((await worker.fetch(new Request(env.PUBLIC_ORIGIN+'/api/admin/login',{method:'POST',headers:{Origin:env.PUBLIC_ORIGIN,'Content-Type':'application/json'},body:'{}'}),{...env,ADMIN_PASSWORD:undefined},{})).status,503);
 });
 test('Cloudflare static assets receive security headers and rate limits enforce distributed state',async()=>{const r=await call('/');assert.equal(r.status,200);assert.match(r.headers.get('Content-Security-Policy'),/frame-ancestors/);for(let i=0;i<65;i++)await call('/api/content');assert.equal((await call('/api/content')).status,429);});
+
+test('management route preserves the extensionless asset path',async()=>{let forwarded;const r=await worker.fetch(new Request(env.PUBLIC_ORIGIN+'/admin'),{...env,ASSETS:{fetch:async request=>{forwarded=new URL(request.url).pathname;return new Response('Management email');}}},{});assert.equal(forwarded,'/admin');assert.equal(r.status,200);});
