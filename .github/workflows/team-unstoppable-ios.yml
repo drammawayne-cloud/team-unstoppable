@@ -13,8 +13,10 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Generate native project
-        run: python3 mobile/ios/generate_project.py
+      - name: Generate native project and UI test target
+        run: |
+          python3 mobile/ios/generate_project.py
+          python3 mobile/ios/enable_ui_tests.py
       - name: Validate content and models
         run: swift test --package-path mobile/ios
       - name: Build iPhone and iPad simulator app
@@ -23,20 +25,26 @@ jobs:
           xcodebuild -project mobile/ios/TeamUnstoppable.xcodeproj -scheme TeamUnstoppable \
             -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO build | tee xcode-build.log
-      - name: Launch on simulator and capture screens
-        run: python3 mobile/ios/simulator_smoke.py
-      - name: Save simulator app and screenshots
+      - name: Save compiled simulator app
         uses: actions/upload-artifact@v4
         with:
-          name: TeamUnstoppable-iOS-Simulator
+          name: TeamUnstoppable-Simulator-App
           path: |
             build/Build/Products/Debug-iphonesimulator/TeamUnstoppable.app
-            simulator-screenshots/
             xcode-build.log
           retention-days: 14
-      - name: Save failure log
-        if: failure()
+      - name: Test native navigation and bookmarks
+        run: |
+          set -o pipefail
+          python3 -u mobile/ios/simulator_smoke.py | tee ui-test.log
+      - name: Save UI evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: TeamUnstoppable-build-log
-          path: xcode-build.log
+          name: TeamUnstoppable-UI-Evidence
+          path: |
+            simulator-screenshots/
+            ui-results.xcresult
+            ui-test.log
+            xcode-build.log
+          retention-days: 14
