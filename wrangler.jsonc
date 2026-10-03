@@ -1,0 +1,29 @@
+{
+  "name": "team-unstoppable",
+  "main": "cloudflare/worker.js",
+  "compatibility_date": "2026-10-03",
+  "account_id": "15d071e9c6f43fcd0d520c7d8cb08577",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "vars": {
+    "PUBLIC_ORIGIN": "https://1teamunstoppable.com",
+    "PREVIEW_ORIGIN": "https://team-unstoppable.dwaynev347.workers.dev"
+  },
+  "triggers": {
+    "crons": [
+      "0 4 * * *"
+    ]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "team-unstoppable-db",
+      "database_id": "48d359ce-5be8-4636-95c6-9f3d61a7a40f",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

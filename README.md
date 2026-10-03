@@ -45,3 +45,21 @@ npm test
 ```
 
 The integration suite runs with an isolated temporary database and tests authentication, cross-origin rejection, private booking isolation, moderation, publishing and logout. Content and branding are original; the Heavy Hitter DJs reference informed talent-first navigation and the collective/radio/event structure only. No proprietary assets or copy are used.
+
+## Cloudflare deployment
+
+The full site also runs on Cloudflare Workers using `cloudflare/worker.js`, the existing public assets, and D1 persistent storage. `wrangler.jsonc` identifies the account and database; it contains no secrets. The Node preview remains available independently.
+
+Worker URL: https://team-unstoppable.dwaynev347.workers.dev
+Official domain: https://1teamunstoppable.com
+
+Commands for future updates (authenticated Wrangler required):
+
+```sh
+npx wrangler@4.147.0 d1 migrations apply DB --remote
+npx wrangler@4.147.0 deploy
+```
+
+Set `ADMIN_PASSWORD` as a Cloudflare Worker secret with at least 16 characters through the Cloudflare dashboard. Until that owner setup is completed, sign-in returns an unavailable response and management remains closed. Never store the password in Git. Worker sessions store only a SHA-256 digest of the random session token in D1. Online password comparison uses fixed-length digests and durable rate limits; the password itself is stored only as a Worker secret. Bookings remain private and chat remains moderated. D1 rate limiting is persistent across Worker instances. A daily scheduled task cleans expired sessions and rate-limit rows.
+
+Cloudflare tests use a real isolated SQLite database behind a D1-compatible adapter to verify API privacy, moderation, authentication, logout, security headers, and persistent rate limits. `npm test` covers both runtimes.
