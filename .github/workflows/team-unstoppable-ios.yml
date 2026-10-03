@@ -1,0 +1,42 @@
+name: Team Unstoppable iOS
+on:
+  push:
+    paths: ['mobile/**', '.github/workflows/team-unstoppable-ios.yml']
+  pull_request:
+    paths: ['mobile/**', '.github/workflows/team-unstoppable-ios.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-build:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate native project
+        run: python3 mobile/ios/generate_project.py
+      - name: Validate content and models
+        run: swift test --package-path mobile/ios
+      - name: Build iPhone and iPad simulator app
+        run: |
+          set -o pipefail
+          xcodebuild -project mobile/ios/TeamUnstoppable.xcodeproj -scheme TeamUnstoppable \
+            -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build | tee xcode-build.log
+      - name: Launch on simulator and capture screens
+        run: python3 mobile/ios/simulator_smoke.py
+      - name: Save simulator app and screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: TeamUnstoppable-iOS-Simulator
+          path: |
+            build/Build/Products/Debug-iphonesimulator/TeamUnstoppable.app
+            simulator-screenshots/
+            xcode-build.log
+          retention-days: 14
+      - name: Save failure log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TeamUnstoppable-build-log
+          path: xcode-build.log

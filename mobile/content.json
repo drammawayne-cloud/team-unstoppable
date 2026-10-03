@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "members": [
+    {"id":"dramma-wayne","name":"Dramma Wayne","role":"Founder · DJ · Producer","bio":"Founder of Team Unstoppable. DJ, host and producer connecting Caribbean music, live events and the people behind the sound.","genres":["Dancehall","Reggae","Hip-hop"],"imageURL":null,"websiteURL":null},
+    {"id":"short-temper","name":"Short Temper","role":"Artist · Team Unstoppable","bio":"Artist and Team Unstoppable member. Part of the collective alongside Dramma Wayne.","genres":["Dancehall"],"imageURL":null,"websiteURL":null}
+  ],
+  "events": [],
+  "mixes": [],
+  "videos": []
+}
