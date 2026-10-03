@@ -28,9 +28,10 @@ struct AppShell: View {
         }
     }
     private func page<Content: View>(_ content: Content) -> some View {
-        NavigationStack {
-            content.safeAreaInset(edge: .bottom, spacing: 0) { MiniPlayer { showPlayer = true } }
-        }
+        NavigationStack { content }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if tab != 1 { MiniPlayer { showPlayer = true } }
+            }
     }
 }
 
@@ -204,7 +205,7 @@ private struct RadioScreen: View {
         Canvas {
             Eyebrow(text: nowPlaying && !radio.isLiveStream ? "The mix archive" : "High Life Radio · worldwide")
             VStack(spacing: 26) {
-                RecordArtwork().frame(maxWidth: 310).padding(.vertical, 12)
+                RecordArtwork().frame(maxWidth: 260).padding(.vertical, 8)
                 VStack(spacing: 10) {
                     Text(isCurrent ? radio.title : "High Life Radio").font(.title.bold()).multilineTextAlignment(.center)
                     Text(isCurrent ? radio.subtitle : "Caribbean energy. Global frequency.").font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
