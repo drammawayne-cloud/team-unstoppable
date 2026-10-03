@@ -30,7 +30,7 @@ export default {
    if(p==='/api/admin/login'&&request.method==='POST'){
     if(!env.ADMIN_PASSWORD||env.ADMIN_PASSWORD.length<16)return json(503,{error:'Private management is not configured yet.'});
     if(!await rate(db,'login:'+key,5))return json(429,{error:'Try again in a minute.'});
-    const b=await parse(request),a=await digest(env.ADMIN_PASSWORD),c=await digest(typeof b.password==='string'?b.password:'');let mismatch=0;for(let i=0;i<a.length;i++)mismatch|=a.charCodeAt(i)^c.charCodeAt(i);if(mismatch)return json(401,{error:'Unable to sign in'});
+    const b=await parse(request),a=await digest(env.ADMIN_PASSWORD),c=await digest(typeof b.password==='string'?b.password:'');let mismatch=0;for(let i=0;i<a.length;i++)mismatch|=a.charCodeAt(i)^c.charCodeAt(i);if(mismatch||(env.ADMIN_EMAIL&&String(b.email||'').trim().toLowerCase()!==env.ADMIN_EMAIL.trim().toLowerCase()))return json(401,{error:'Unable to sign in'});
     const raw=token();await db.prepare('INSERT INTO sessions VALUES (?,?)').bind(await digest(raw),Date.now()+8*3600000).run();return json(200,{ok:true},{'Set-Cookie':`tu_session=${raw}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=28800`});
    }
    if(p.startsWith('/api/admin/')){

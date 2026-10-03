@@ -63,3 +63,5 @@ npx wrangler@4.147.0 deploy
 Set `ADMIN_PASSWORD` as a Cloudflare Worker secret with at least 16 characters through the Cloudflare dashboard. Until that owner setup is completed, sign-in returns an unavailable response and management remains closed. Never store the password in Git. Worker sessions store only a SHA-256 digest of the random session token in D1. Online password comparison uses fixed-length digests and durable rate limits; the password itself is stored only as a Worker secret. Bookings remain private and chat remains moderated. D1 rate limiting is persistent across Worker instances. A daily scheduled task cleans expired sessions and rate-limit rows.
 
 Cloudflare tests use a real isolated SQLite database behind a D1-compatible adapter to verify API privacy, moderation, authentication, logout, security headers, and persistent rate limits. `npm test` covers both runtimes.
+
+Management sign-in also checks the configured `ADMIN_EMAIL` when present. Set it privately through Cloudflare secrets; it is not displayed on the public website. The password remains required and is never inferred from the email address.

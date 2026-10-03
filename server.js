@@ -34,7 +34,7 @@ export const server=http.createServer(async(req,res)=>{
     if(!hash)return send(503,{error:'Private management is not configured yet.'});
     if(!rate('login:'+req.socket.remoteAddress,5))return send(429,{error:'Try again in a minute.'});
     const b=await body(req);const candidate=scryptSync(typeof b.password==='string'?b.password:'',salt,64);
-    if(!timingSafeEqual(candidate,hash))return send(401,{error:'Unable to sign in'});
+    if(!timingSafeEqual(candidate,hash)||(process.env.ADMIN_EMAIL&&String(b.email||'').trim().toLowerCase()!==process.env.ADMIN_EMAIL.trim().toLowerCase()))return send(401,{error:'Unable to sign in'});
     const token=randomBytes(32).toString('hex');db.prepare('INSERT INTO sessions VALUES (?,?)').run(token,Date.now()+8*3600000);
     return send(200,{ok:true},{'Set-Cookie':`tu_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800${process.env.NODE_ENV==='production'?'; Secure':''}`});
    }
