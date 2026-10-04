@@ -1,0 +1,117 @@
+{
+  "updated": "2026-10-04",
+  "commerceEnabled": false,
+  "source": "Manufacturer research; supplier availability unverified",
+  "products": [
+    {
+      "id": "rane-system-one",
+      "brand": "Rane",
+      "name": "SYSTEM ONE",
+      "category": "controllers",
+      "description": "Motorized DJ performance system.",
+      "source": "https://www.rane.com/products/controllers/",
+      "status": "Supplier availability pending",
+      "supplierSku": null,
+      "price": null
+    },
+    {
+      "id": "rane-performer",
+      "brand": "Rane",
+      "name": "PERFORMER",
+      "category": "controllers",
+      "description": "Four-channel motorized DJ controller.",
+      "source": "https://www.rane.com/products/controllers/",
+      "status": "Supplier availability pending",
+      "supplierSku": null,
+      "price": null
+    },
+    {
+      "id": "rane-one-mkii",
+      "brand": "Rane",
+      "name": "ONE MKII",
+      "category": "controllers",
+      "description": "Motorized DJ controller for Serato.",
+      "source": "https://www.rane.com/one-mk2/",
+      "status": "Supplier availability pending",
+      "supplierSku": null,
+      "price": null
+    },
+    {
+      "id": "ddj-1000srt",
+      "brand": "Pioneer DJ / AlphaTheta",
+      "name": "DDJ-1000SRT",
+      "category": "controllers",
+      "description": "Requested Serato model. Supplier stock and availability must be confirmed.",
+      "source": "https://support.alphatheta.com/en-us/products/4416585418265",
+      "status": "Supplier availability pending",
+      "supplierSku": null,
+      "price": null
+    },
+    {
+      "id": "ddj-flx10",
+      "brand": "Pioneer DJ / AlphaTheta",
+      "name": "DDJ-FLX10",
+      "category": "controllers",
+      "description": "Four-channel DJ controller.",
+      "source": "https://support.alphatheta.com/en-us/products/16715825715481",
+      "status": "Supplier availability pending",
+      "supplierSku": null,
+      "price": null
+    },
+    {
+      "id": "xdj-az",
+      "brand": "AlphaTheta",
+      "name": "XDJ-AZ",
+      "category": "controllers",
+      "description": "All-in-one DJ system with a club-style layout.",
+      "source": "https://alphatheta.com/en/product/all-in-one-dj-system/xdj-az/black/",
+      "status": "Supplier availability pending",
+      "supplierSku": null,
+      "price": null
+    },
+    {
+      "id": "rcf-nx9",
+      "brand": "RCF",
+      "name": "NX 9 Series",
+      "category": "tops",
+      "description": "Professional powered loudspeaker family. Exact models require supplier matching.",
+      "source": "https://www.rcf.it/",
+      "status": "Supplier availability pending",
+      "supplierSku": null,
+      "price": null
+    },
+    {
+      "id": "mackie-thumpv4",
+      "brand": "Mackie",
+      "name": "Thumpv4",
+      "category": "tops",
+      "description": "Powered loudspeaker family for live sound.",
+      "source": "https://mackie.com/en/products/loudspeakers",
+      "status": "Supplier availability pending",
+      "supplierSku": null,
+      "price": null
+    },
+    {
+      "id": "yorkville-es18p",
+      "brand": "Yorkville",
+      "name": "Elite ES18P",
+      "category": "bass",
+      "description": "18-inch powered subwoofer.",
+      "source": "https://yorkville.com/subwoofers/elite/product/es18p",
+      "status": "Supplier availability pending",
+      "supplierSku": null,
+      "price": null
+    },
+    {
+      "id": "qsc-ks118",
+      "brand": "QSC",
+      "name": "KS118",
+      "category": "bass",
+      "description": "High-output powered subwoofer for mobile entertainment and venues.",
+      "source": "https://www.qscaudio.com/products-solutions/loudspeakers/portable/powered/subwoofers/ks-series/ks118/",
+      "status": "Supplier availability pending",
+      "supplierSku": null,
+      "price": null
+    }
+  ]
+}
