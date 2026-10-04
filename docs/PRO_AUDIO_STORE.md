@@ -13,7 +13,7 @@ Public category: `/pro-audio.html`. The catalog is a sourcing shortlist, not sel
 
 ## Inventory Source setup
 
-The account profile company is saved as Team Unstoppable and the website as https://1teamunstoppable.com; both persisted after reload. The owner reports completing verification on a phone. The desktop dashboard still showed the verification requirement after reload, disabling Select Supplier, Select Channel and Continue. A fresh sign-in session was started to refresh account state; the desktop is now at login awaiting the owner's existing password. Do not treat the verification discrepancy as proof that the owner did not complete the phone step. No integration or subscription purchase has been completed.
+The account profile company is saved as Team Unstoppable and the website as https://1teamunstoppable.com. Email verification is now recognized: the warning is gone and Select Channel is enabled. The supplier/channel wizard was prepared for Synnex and IS Auto Export, with Full Automation Starter at the review stage ($299 due today and $299/month). No purchase was completed and no feed has been activated.
 
 The authenticated Musical Products directory lists Doba, ALMS Marketplace and Carolina Distribution. Carolina Distribution's profile focuses on hand drums and percussion, so it is not selected for this DJ/PA store. Cross-supplier Rane search returned one PERFORMER listing from Synnex. Synnex is the first pilot candidate: its profile shows Inventory Source integration, dropship allowed, no minimum order and USA shipping. This is not confirmation of authorized Rane resale or coverage of all requested brands. The product's supplier brand field says Strategic Sourcing and it has no image. Manufacturer identity, authorization, warranty, current stock and margins need verification. Private listing identifiers and cost evidence are stored only under ignored data/.
 
@@ -32,3 +32,13 @@ Activation requires approved supplier accounts, a supported sales-channel integr
 The equipment category is deployed to https://1teamunstoppable.com/pro-audio using existing Cloudflare Worker and D1 bindings. Deployment version: 98a04d55-43d8-4449-9250-4fa538e2db76. Five existing server/Cloudflare tests passed; JavaScript syntax checks passed. Browser verified ten candidates, three Rane search results, two bass-filter results, empty-category state, and no horizontal overflow at 390px. Store checkout remains absent.
 
 Sources: https://www.inventorysource.com/pricing-plans/ ; https://www.inventorysource.com/dropship-musical-instruments-and-equipment/ ; https://www.inventorysource.com/custom-integration/
+
+## Latest supplier and connection audit
+
+Mackie keyword search returned 63 results, including unrelated fragrance and networking products. Exact product identity is mandatory. A Synnex Thrash212 GO listing was recorded privately with exact supplier SKU and MPN; it does not match the public Thumpv4 family, so it must not be substituted. Stock, resale authorization, warranty and product imagery remain unverified. Yorkville keyword search returned zero visible results; this only describes the searched directory. RCF returned a count but product details did not render, so no audio match was confirmed.
+
+IS Auto Export documentation describes an automatically updated downloadable catalog link. It does not establish the custom site's order submission/tracking connection. Inventory Source's API and custom integration pages direct those integrations through Flxpoint. Resolve that supported contract before purchasing or building a production adapter.
+
+Run `npm run audit:equipment` to report each public product's exact mapping coverage. It also lists additional sourced candidates separately, so a Thrash speaker cannot silently replace a Thump family. Exit status 2 means incomplete activation; status 1 means malformed or inconsistent mapping data. The audit is offline and never submits supplier orders or changes the live catalog.
+
+Additional sources: https://help.inventorysource.com/article/189-catalog-manager-product-customization ; https://www.inventorysource.com/api/
