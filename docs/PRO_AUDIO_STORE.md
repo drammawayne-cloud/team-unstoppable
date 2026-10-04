@@ -42,3 +42,9 @@ IS Auto Export documentation describes an automatically updated downloadable cat
 Run `npm run audit:equipment` to report each public product's exact mapping coverage. It also lists additional sourced candidates separately, so a Thrash speaker cannot silently replace a Thump family. Exit status 2 means incomplete activation; status 1 means malformed or inconsistent mapping data. The audit is offline and never submits supplier orders or changes the live catalog.
 
 Additional sources: https://help.inventorysource.com/article/189-catalog-manager-product-customization ; https://www.inventorysource.com/api/
+
+## Readiness follow-up
+
+Inventory Source displayed a support-submission confirmation. The Integrations page still shows Get Started without active supplier integrations. XDJ-AZ exact search returned zero visible directory matches.
+
+The mapping audit now requires explicit model/variant identity and strict boolean approvals, rejects duplicate SKU or ambiguous product mappings, and requires supported sales-channel, payment and supplier order/tracking test evidence. Five additional regression tests protect wrong-model substitution and false readiness. All ten tests passed; syntax checks passed. The readiness report remains INCOMPLETE with zero sellable public products. These offline tests do not prove external provider transactions.
