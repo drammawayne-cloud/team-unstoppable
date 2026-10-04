@@ -13,7 +13,7 @@ Public category: `/pro-audio.html`. The catalog is a sourcing shortlist, not sel
 
 ## Inventory Source setup
 
-The signup store URL is filled as https://1teamunstoppable.com. The account dashboard is accessible. Email verification is pending; Add Integration displays a verification requirement and disables Select Channel and Continue.
+The account profile company is saved as Team Unstoppable and the website as https://1teamunstoppable.com; both persisted after reload. The owner reports completing verification on a phone. The desktop dashboard still showed the verification requirement after reload, disabling Select Supplier, Select Channel and Continue. A fresh sign-in session was started to refresh account state; the desktop is now at login awaiting the owner's existing password. Do not treat the verification discrepancy as proof that the owner did not complete the phone step. No integration or subscription purchase has been completed.
 
 The authenticated Musical Products directory lists Doba, ALMS Marketplace and Carolina Distribution. Carolina Distribution's profile focuses on hand drums and percussion, so it is not selected for this DJ/PA store. Cross-supplier Rane search returned one PERFORMER listing from Synnex. Synnex is the first pilot candidate: its profile shows Inventory Source integration, dropship allowed, no minimum order and USA shipping. This is not confirmation of authorized Rane resale or coverage of all requested brands. The product's supplier brand field says Strategic Sourcing and it has no image. Manufacturer identity, authorization, warranty, current stock and margins need verification. Private listing identifiers and cost evidence are stored only under ignored data/.
 
