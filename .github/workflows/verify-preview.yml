@@ -1,0 +1,29 @@
+name: Verify and package Team Unstoppable preview
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches-ignore: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify code
+        run: npm run check && npm test
+      - name: Stage static preview
+        run: |
+          test -f public/index.html
+          mkdir -p preview
+          cp -R public/. preview/
+      - name: Upload preview artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: team-unstoppable-preview
+          path: preview/
+          retention-days: 7
