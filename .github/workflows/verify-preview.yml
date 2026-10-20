@@ -27,3 +27,31 @@ jobs:
           name: team-unstoppable-preview
           path: preview/
           retention-days: 7
+
+  cloudflare-preview:
+    needs: verify
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: team-preview
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify before preview
+        run: npm run check && npm test
+      - name: Check preview configuration
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_PREVIEW_PROJECT: ${{ vars.CLOUDFLARE_PREVIEW_PROJECT }}
+        run: |
+          test -n "$CF_API_TOKEN" || { echo 'Missing Cloudflare preview token'; exit 1; }
+          test -n "$CF_ACCOUNT_ID" || { echo 'Missing Cloudflare account ID'; exit 1; }
+          test "$CF_PREVIEW_PROJECT" = 'team-unstoppable-preview' || { echo 'Wrong preview project'; exit 1; }
+      - name: Publish separate static preview only
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy public --project-name team-unstoppable-preview --branch review
