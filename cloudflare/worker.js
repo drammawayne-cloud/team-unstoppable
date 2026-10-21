@@ -22,7 +22,23 @@ export default {
   try{
    const ip=request.headers.get('CF-Connecting-IP')||'local';const key=await digest(ip);
    if(!await rate(db,'all:'+key,60))return json(429,{error:'Please wait a minute and try again.'});
-   if(request.method==='POST'&&(!allowedOrigin(request,env)||!request.headers.get('Content-Type')?.startsWith('application/json')))return json(403,{error:'Request rejected'});
+   if(request.method==='POST'&&((p!=='/api/control-center'&&!allowedOrigin(request,env))||!request.headers.get('Content-Type')?.startsWith('application/json')))return json(403,{error:'Request rejected'});
+   if(p==='/api/control-center'&&request.method==='POST'){
+    const proof=request.headers.get('X-RR-Console-Proof');
+    if(!env.CONSOLE_PUBLIC_KEY||!proof)return json(503,{error:'Secure Control Center connection is not configured'});
+    // Fail closed until the central console signing key has been installed and validated.
+    const [payload,signature,...extra]=proof.split('.');if(!payload||!signature||extra.length)return json(403,{error:'Invalid console proof'});
+    let claims;try{claims=JSON.parse(atob(payload.replace(/-/g,'+').replace(/_/g,'/')))}catch{return json(403,{error:'Invalid console proof'});}
+    const key=await crypto.subtle.importKey('spki',Uint8Array.from(atob(env.CONSOLE_PUBLIC_KEY.replace(/-----[^-]+-----|\s/g,'')),c=>c.charCodeAt(0)),{name:'Ed25519'},false,['verify']).catch(()=>null);
+    if(!key)return json(503,{error:'Console verification key is unavailable'});
+    const bytes=Uint8Array.from(atob(signature.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
+    if(!await crypto.subtle.verify('Ed25519',key,bytes,new TextEncoder().encode(payload)))return json(403,{error:'Invalid console proof'});
+    if(claims.iss!=='https://console.richrowrecords.com'||claims.aud!=='teamunstoppable'||claims.method!=='POST'||claims.path!=='/api/control-center'||!Number.isFinite(claims.exp)||claims.exp<Date.now()||claims.exp>Date.now()+30000)return json(403,{error:'Invalid console claims'});
+    const rawBody=await request.clone().text();const b=await parse(request),hash=await digest(rawBody);if(hash!==claims.hash)return json(403,{error:'Request integrity check failed'});
+    if(b.op!=='records')return json(403,{error:'Only read-only records are enabled'});
+    const {results}=await db.prepare("SELECT id,kind,body,published,revision FROM records WHERE kind NOT IN ('booking','chat') ORDER BY id DESC LIMIT 200").all();
+    return json(200,{records:results.map(r=>({...r,body:JSON.parse(r.body)}))});
+   }
    if(p==='/api/content'&&request.method==='GET'){const {results}=await db.prepare("SELECT id,kind,body FROM records WHERE published=1 AND kind NOT IN ('booking','chat') ORDER BY id DESC").all();return json(200,results.map(r=>({...r,body:JSON.parse(r.body)})));}
    if(p==='/api/chat'&&request.method==='GET'){const {results}=await db.prepare("SELECT id,body FROM records WHERE kind='chat' AND published=1 ORDER BY id DESC LIMIT 50").all();return json(200,results.reverse().map(r=>({...r,body:JSON.parse(r.body)})));}
    if(p==='/api/booking'&&request.method==='POST'){if(!await rate(db,'booking:'+key,5))return json(429,{error:'Please wait a minute and try again.'});const b=await parse(request);if(b.website)return json(200,{ok:true});const record={name:clean(b.name,100),email:clean(b.email,254),type:clean(b.type,100),date:clean(b.date,30),message:clean(b.message,2000)};if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(record.email))throw Error('Invalid email');await db.prepare("INSERT INTO records(kind,body) VALUES('booking',?)").bind(JSON.stringify(record)).run();return json(201,{ok:true});}
