@@ -24,6 +24,7 @@ test('Cloudflare static assets receive security headers and rate limits enforce 
 test('management route preserves the extensionless asset path',async()=>{let forwarded;const r=await worker.fetch(new Request(env.PUBLIC_ORIGIN+'/admin'),{...env,ASSETS:{fetch:async request=>{forwarded=new URL(request.url).pathname;return new Response('Management email');}}},{});assert.equal(forwarded,'/admin');assert.equal(r.status,200);});
 
 test('record updates enforce revision and do not overwrite later changes',async()=>{
+ sqlite.exec('DELETE FROM rate_limits');
  const login=await call('/api/admin/login',{email:env.ADMIN_EMAIL,password:env.ADMIN_PASSWORD});assert.equal(login.status,200);const cookie=login.headers.get('set-cookie').split(';')[0];
  assert.equal((await call('/api/admin/record',{kind:'team',title:'Member',description:'Original'},cookie)).status,201);
  const rows=await (await call('/api/admin/records',null,cookie)).json(),row=rows.find(r=>r.kind==='team');assert.equal(row.revision,1);
