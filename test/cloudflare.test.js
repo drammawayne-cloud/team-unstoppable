@@ -1,5 +1,5 @@
 import {test,after} from 'node:test';import assert from 'node:assert/strict';import {DatabaseSync} from 'node:sqlite';import {readFileSync} from 'node:fs';import worker from '../cloudflare/worker.js';
-const sqlite=new DatabaseSync(':memory:');sqlite.exec(readFileSync('migrations/0001_initial.sql','utf8'));
+const sqlite=new DatabaseSync(':memory:');sqlite.exec(readFileSync('migrations/0001_initial.sql','utf8'));sqlite.exec(readFileSync('migrations/0002_record_revisions.sql','utf8'));
 const DB={prepare(sql){let args=[];return {bind(...values){args=values;return this;},async first(){return sqlite.prepare(sql).get(...args)||null;},async all(){return {results:sqlite.prepare(sql).all(...args)};},async run(){return sqlite.prepare(sql).run(...args);}};},async batch(statements){return Promise.all(statements.map(s=>s.run()));}};
 const env={DB,ADMIN_EMAIL:'manager@example.com',ADMIN_PASSWORD:'test-only-long-password',PUBLIC_ORIGIN:'https://1teamunstoppable.com',ASSETS:{fetch:async()=>new Response('TEAM UNSTOPPABLE')}};
 const call=(route,data,cookie='',origin=env.PUBLIC_ORIGIN)=>worker.fetch(new Request(env.PUBLIC_ORIGIN+route,{method:data?'POST':'GET',headers:{Origin:origin,'Content-Type':'application/json',Cookie:cookie},body:data?JSON.stringify(data):undefined}),env,{});
@@ -22,3 +22,13 @@ test('Cloudflare D1 preserves booking privacy, authentication, moderation and lo
 test('Cloudflare static assets receive security headers and rate limits enforce distributed state',async()=>{const r=await call('/');assert.equal(r.status,200);assert.match(r.headers.get('Content-Security-Policy'),/frame-ancestors/);for(let i=0;i<65;i++)await call('/api/content');assert.equal((await call('/api/content')).status,429);});
 
 test('management route preserves the extensionless asset path',async()=>{let forwarded;const r=await worker.fetch(new Request(env.PUBLIC_ORIGIN+'/admin'),{...env,ASSETS:{fetch:async request=>{forwarded=new URL(request.url).pathname;return new Response('Management email');}}},{});assert.equal(forwarded,'/admin');assert.equal(r.status,200);});
+
+test('record updates enforce revision and do not overwrite later changes',async()=>{
+ sqlite.exec('DELETE FROM rate_limits');
+ const login=await call('/api/admin/login',{email:env.ADMIN_EMAIL,password:env.ADMIN_PASSWORD});assert.equal(login.status,200);const cookie=login.headers.get('set-cookie').split(';')[0];
+ assert.equal((await call('/api/admin/record',{kind:'team',title:'Member',description:'Original'},cookie)).status,201);
+ const rows=await (await call('/api/admin/records',null,cookie)).json(),row=rows.find(r=>r.kind==='team');assert.equal(row.revision,1);
+ const first=await call('/api/admin/record-update',{id:row.id,revision:1,body:{title:'Updated',description:'Safe'},published:false},cookie);assert.equal(first.status,200);assert.equal((await first.json()).revision,2);
+ const stale=await call('/api/admin/record-update',{id:row.id,revision:1,body:{title:'Stale',description:'Must not save'},published:true},cookie);assert.equal(stale.status,409);
+ const current=(await (await call('/api/admin/records',null,cookie)).json()).find(r=>r.id===row.id);assert.equal(current.body.title,'Updated');assert.equal(current.published,0);
+});

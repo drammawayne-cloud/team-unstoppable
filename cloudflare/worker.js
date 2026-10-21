@@ -37,6 +37,19 @@ export default {
     const signed=await session(request,db);if(!signed)return json(401,{error:'Sign in required'});
     if(p==='/api/admin/logout'&&request.method==='POST'){await db.prepare('DELETE FROM sessions WHERE token=?').bind(signed.token).run();return json(200,{ok:true},{'Set-Cookie':'tu_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0'});}
     if(p==='/api/admin/records'&&request.method==='GET'){const {results}=await db.prepare('SELECT * FROM records ORDER BY id DESC LIMIT 200').all();return json(200,results.map(r=>({...r,body:JSON.parse(r.body)})));}
+    if(p==='/api/admin/record-update'&&request.method==='POST'){
+     const b=await parse(request);const id=Number(b.id),revision=Number(b.revision);
+     if(!Number.isSafeInteger(id)||id<1||!Number.isSafeInteger(revision)||revision<1)return json(400,{error:'Valid record and revision are required'});
+     const record=await db.prepare('SELECT id,kind,body,published,revision FROM records WHERE id=?').bind(id).first();
+     if(!record)return json(404,{error:'Record not found'});
+     if(['booking','chat'].includes(record.kind))return json(403,{error:'Private records cannot be edited here'});
+     const body=b.body;if(!body||typeof body!=='object'||Array.isArray(body))return json(400,{error:'Record content is required'});
+     const next={title:clean(body.title,120),description:clean(body.description,1000)};
+     for(const field of ['url','image'])if(body[field]){const u=new URL(body[field]);if(u.protocol!=='https:')return json(400,{error:'Only HTTPS media links are allowed'});next[field]=u.href;}
+     const result=await db.prepare('UPDATE records SET body=?,published=?,revision=revision+1 WHERE id=? AND revision=? RETURNING revision').bind(JSON.stringify(next),b.published===true?1:0,id,revision).first();
+     if(!result)return json(409,{error:'This record changed elsewhere. Reload and review before saving.'});
+     return json(200,{ok:true,revision:result.revision});
+    }
     if(p==='/api/admin/record'&&request.method==='POST'){const b=await parse(request);if(b.id){const r=await db.prepare('SELECT kind FROM records WHERE id=?').bind(Number(b.id)).first();if(!r)return json(404,{error:'Record not found'});if(r.kind==='booking')throw Error('Private booking');await db.prepare('UPDATE records SET published=? WHERE id=?').bind(b.published?1:0,Number(b.id)).run();return json(200,{ok:true});}
      if(!['team','events','music','videos','gallery','merch','chat'].includes(b.kind))throw Error('Invalid kind');const record={title:clean(b.title,120),description:clean(b.description,1000)};if(b.kind==='chat'){record.name='Team Unstoppable';record.message=record.description;}for(const field of ['url','image'])if(b[field]){const u=new URL(b[field]);if(u.protocol!=='https:')throw Error('Invalid URL');record[field]=u.href;}
      await db.prepare('INSERT INTO records(kind,body,published) VALUES(?,?,?)').bind(b.kind,JSON.stringify(record),b.published?1:0).run();return json(201,{ok:true});}
